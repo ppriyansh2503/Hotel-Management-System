@@ -1,0 +1,27 @@
+# Maven build output
+target/
+*.class
+dependency-reduced-pom.xml
+
+# NetBeans build output
+Hotel Reservation System/build/
+Hotel Reservation System/dist/
+Hotel Reservation System/nbproject/private/
+
+# macOS system files
+.DS_Store
+**/.DS_Store
+._*
+
+# Local SQLite databases & logs
+*.db
+*.db-journal
+*.log
+
+# IDE files
+.idea/
+*.iml
+.vscode/
+.settings/
+.project
+.classpath

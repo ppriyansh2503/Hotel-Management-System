@@ -1,91 +1,143 @@
 package hotel.reservation.system;
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import javax.swing.*;
 
-public class Login extends JFrame implements ActionListener{
-    JLabel l1, l2;
-    JTextField t1;
-    JPasswordField p1;
-    JButton b1, b2;
-    
-    Login(){
-        
+/**
+ * Authentication Screen.
+ * Uses parameterized queries, salted cryptographic password verification,
+ * and passes the authenticated user role to the Dashboard.
+ */
+public class Login extends JFrame implements ActionListener {
+    private JLabel userLabel, passLabel, titleLabel;
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JButton loginButton, cancelButton;
+
+    public Login() {
+        UIUtils.applyModernTheme();
+
+        setTitle("Hotel Management - Staff Login");
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setSize(620, 320);
+        setLocationRelativeTo(null);
         setLayout(null);
-        
-        ImageIcon i1 = new ImageIcon(ClassLoader.getSystemResource("icons/second.jpg"));
-        Image i2 = i1.getImage().getScaledInstance(200,200,Image.SCALE_DEFAULT);
-        ImageIcon i3 =  new ImageIcon(i2);
-        JLabel l3 = new JLabel(i3);
-        l3.setBounds(350,10,150,150);
-        add(l3);
-        
-        l1 = new JLabel("UserName:");
-        l1.setBounds(40,20,100,30);
-        add(l1);
-        
-        l2 = new JLabel("Password:");
-        l2.setBounds(40,70,100,30);
-        add(l2);
-        
-        t1 = new JTextField();
-        t1.setBounds(140,20,150,30);
-        add(t1);
-        
-        p1 = new JPasswordField();
-        p1.setBounds(140,70,150,30);
-        add(p1);
-        
-        b1 = new JButton("Login");
-        b1.setBounds(40,150,100,30);
-        b1.setFont(new Font("serif",Font.BOLD,15));
-        b1.setForeground(Color.WHITE);
-        b1.setBackground(Color.BLACK);
-        b1.addActionListener(this);
-        add(b1);
-        
-        b2 = new JButton("Cancel");
-        b2.setBounds(190,150,100,30);
-        b2.setFont(new Font("serif",Font.BOLD,15));
-        b2.setForeground(Color.WHITE);
-        b2.setBackground(Color.BLACK);
-        b2.addActionListener(this);
-        add(b2);
-        
         getContentPane().setBackground(Color.WHITE);
 
+        titleLabel = new JLabel("STAFF PORTAL LOGIN");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(24, 43, 73));
+        titleLabel.setBounds(40, 20, 300, 25);
+        add(titleLabel);
+
+        userLabel = new JLabel("Username:");
+        userLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        userLabel.setBounds(40, 70, 100, 30);
+        add(userLabel);
+
+        usernameField = new JTextField();
+        usernameField.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        usernameField.setBounds(140, 70, 180, 32);
+        add(usernameField);
+
+        passLabel = new JLabel("Password:");
+        passLabel.setFont(new Font("Tahoma", Font.PLAIN, 15));
+        passLabel.setBounds(40, 120, 100, 30);
+        add(passLabel);
+
+        passwordField = new JPasswordField();
+        passwordField.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        passwordField.setBounds(140, 120, 180, 32);
+        add(passwordField);
+
+        // Allow pressing Enter in password field to trigger login
+        passwordField.addActionListener(this);
+
+        loginButton = new JButton("Login");
+        loginButton.setBounds(40, 185, 130, 38);
+        loginButton.setFont(new Font("Tahoma", Font.BOLD, 14));
+        loginButton.setForeground(Color.WHITE);
+        loginButton.setBackground(new Color(24, 43, 73));
+        loginButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        loginButton.addActionListener(this);
+        add(loginButton);
+
+        cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(190, 185, 130, 38);
+        cancelButton.setFont(new Font("Tahoma", Font.BOLD, 14));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setBackground(new Color(108, 117, 125));
+        cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cancelButton.addActionListener(this);
+        add(cancelButton);
+
+        // Side Icon
+        Image scaledIcon = UIUtils.getScaledImage("icons/second.jpg", 180, 180);
+        JLabel iconLabel = new JLabel(new ImageIcon(scaledIcon));
+        iconLabel.setBounds(370, 35, 190, 190);
+        add(iconLabel);
+
+        // Demo credentials hint
+        JLabel hintLabel = new JLabel("<html><small>Demo: <b>admin / Admin@123</b> (Admin) &bull; <b>sunita / Sunita@123</b> (Reception)</small></html>");
+        hintLabel.setForeground(new Color(110, 120, 130));
+        hintLabel.setBounds(40, 245, 520, 25);
+        add(hintLabel);
+
+        getRootPane().setDefaultButton(loginButton);
         setVisible(true);
-        setSize(600,300);
-        setLocation(400,250);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        if(ae.getSource()==b1){
-        try{
-            Conn c1 = new Conn();
-            String u = t1.getText();
-            String v = p1.getText();
-            
-            String q = "select * from login where username='"+u+"' and password='"+v+"'";
-            
-            ResultSet rs = c1.s.executeQuery(q); 
-            if(rs.next()){ 
-                new Dashboard().setVisible(true);
-                setVisible(false);
-            }else{
-                JOptionPane.showMessageDialog(null, "Invalid login");
-                setVisible(false);
-            }
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        }else if(ae.getSource()==b2){
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == loginButton || ae.getSource() == passwordField) {
+            handleLogin();
+        } else if (ae.getSource() == cancelButton) {
             System.exit(0);
         }
     }
-    
-    public static void main(String[] args){
-        new Login();
+
+    private void handleLogin() {
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
+
+        if (username.isEmpty() || password.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "Please enter both username and password.", "Input Required", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        String sql = "SELECT username, password, role, name FROM login WHERE username = ?";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, username);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String storedHash = rs.getString("password");
+                    String role = rs.getString("role");
+                    String fullName = rs.getString("name");
+
+                    if (SecurityUtils.verifyPassword(password, storedHash)) {
+                        setVisible(false);
+                        dispose();
+                        new Dashboard(username, role, fullName).setVisible(true);
+                        return;
+                    }
+                }
+            }
+
+            // Authentication failure
+            JOptionPane.showMessageDialog(this, "Invalid username or password.", "Login Failed", JOptionPane.ERROR_MESSAGE);
+            passwordField.setText("");
+            passwordField.requestFocusInWindow();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Database error: " + e.getMessage(), "System Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Login());
     }
 }

@@ -1,81 +1,88 @@
 package hotel.reservation.system;
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import net.proteanit.sql.*;
+import javax.swing.*;
+import net.proteanit.sql.DbUtils;
 
-public class ManagerInfo extends JFrame implements ActionListener{
-    JTable t1;
-    JLabel l1, l2, l3, l4, l5, l6, l7, l8;
-    JButton b1;
-    
-    ManagerInfo(){
-        setLayout(null);
-        
-        l1 = new JLabel("Name");
-        l1.setBounds(0, 10, 60, 20);
-        add(l1);
-        
-        l2 = new JLabel("Age");
-        l2.setBounds(100, 10, 80, 20);
-        add(l2);
-        
-        l3 = new JLabel("Gender");
-        l3.setBounds(175, 10, 60, 20);
-        add(l3);
-        
-        l4 = new JLabel("job");
-        l4.setBounds(250, 10, 60, 20);
-        add(l4);
-        
-        l5 = new JLabel("Salary");
-        l5.setBounds(340, 10, 60, 20);
-        add(l5);
-        
-        l6 = new JLabel("Phone");
-        l6.setBounds(430, 10, 60, 20);
-        add(l6);
-        
-        l7 = new JLabel("Email");
-        l7.setBounds(515, 10, 110, 20);
-        add(l7);
-        
-        l8 = new JLabel("Aadhar");
-        l8.setBounds(600, 10, 110, 20);
-        add(l8);
-        
-        t1 = new JTable();
-        t1.setBounds(0, 40, 680, 350);
-        add(t1);
-        
-        try{
-            Conn c = new Conn();
-            String str = "select * from employee where job = 'Manager'";
-            ResultSet rs = c.s.executeQuery(str);
-            t1.setModel(DbUtils.resultSetToTableModel(rs));
-        }catch(Exception e1){
-            System.out.println(e1);
-	}
-        
-        b1 = new JButton("Back");
-	b1.addActionListener(this);
-	b1.setBounds(150, 400, 150, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-        
+/**
+ * Management Personnel Directory.
+ * Displays executive managers and departmental heads.
+ */
+public class ManagerInfo extends JFrame implements ActionListener {
+    private JTable table;
+    private JButton backButton;
+
+    public ManagerInfo() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - Managers & Executives Directory");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(960, 560);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
         getContentPane().setBackground(Color.WHITE);
-        setSize(850, 650);
-        setLocation(300, 200);
+
+        // Header
+        JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 15));
+        headerPanel.setBackground(new Color(24, 43, 73));
+
+        JLabel titleLabel = new JLabel("HOTEL MANAGERS & DEPARTMENT HEADS");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        headerPanel.add(titleLabel);
+
+        add(headerPanel, BorderLayout.NORTH);
+
+        // Center Table in JScrollPane
+        table = new JTable();
+        table.setRowHeight(25);
+        table.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Tahoma", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(230, 235, 245));
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Footer
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 20, 12));
+        footerPanel.setBackground(Color.WHITE);
+
+        backButton = new JButton("Back to Reception");
+        backButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        backButton.setBackground(new Color(108, 117, 125));
+        backButton.setForeground(Color.WHITE);
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(this);
+        footerPanel.add(backButton);
+
+        add(footerPanel, BorderLayout.SOUTH);
+
+        loadManagers();
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        setVisible(false);
-        new Reception();
+
+    private void loadManagers() {
+        String sql = "SELECT name, age, gender, job, salary, phone, email, aadhar FROM employee WHERE LOWER(job) LIKE '%manager%' ORDER BY id ASC";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            table.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to load manager records: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-    public static void main(String[] args){
-        new ManagerInfo();
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        setVisible(false);
+        dispose();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new ManagerInfo());
     }
 }

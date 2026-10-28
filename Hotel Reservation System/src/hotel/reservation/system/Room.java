@@ -1,76 +1,86 @@
 package hotel.reservation.system;
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import net.proteanit.sql.*;
+import javax.swing.*;
+import net.proteanit.sql.DbUtils;
 
-public class Room extends JFrame implements ActionListener{
-    JTable t1;
-    JLabel l1, l2, l3, l4, l5;
-    JButton b1;
-    
-    Room(){
+/**
+ * Room Inventory Screen.
+ * Displays all hotel rooms with live status, tariffs, and bed configurations.
+ */
+public class Room extends JFrame implements ActionListener {
+    private JTable table;
+    private JButton backButton;
+
+    public Room() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - Room Inventory Directory");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(880, 560);
+        setLocationRelativeTo(null);
         setLayout(null);
-        
-        ImageIcon i1  = new ImageIcon(ClassLoader.getSystemResource("icons/eight.jpg"));
-        Image i3 = i1.getImage().getScaledInstance(400, 400,Image.SCALE_DEFAULT);
-        ImageIcon i2 = new ImageIcon(i3);
-        JLabel l15 = new JLabel(i2);
-        l15.setBounds(400,40,400,400);
-        add(l15);
-        
-        l1 = new JLabel("Room No.");
-        l1.setBounds(0, 10, 60, 20);
-        add(l1);
-        
-        l2 = new JLabel("Availability");
-        l2.setBounds(70, 10, 80, 20);
-        add(l2);
-        
-        l3 = new JLabel("Status");
-        l3.setBounds(150, 10, 60, 20);
-        add(l3);
-        
-        l4 = new JLabel("Price");
-        l4.setBounds(215, 10, 60, 20);
-        add(l4);
-        
-        l5 = new JLabel("Bed Type");
-        l5.setBounds(280, 10, 60, 20);
-        add(l5);
-        
-        t1 = new JTable();
-        t1.setBounds(0, 40, 350, 350);
-        add(t1);
-        
-        try{
-            Conn c = new Conn();
-            String str = "select * from room";
-            ResultSet rs = c.s.executeQuery(str);
-            t1.setModel(DbUtils.resultSetToTableModel(rs));
-        }catch(Exception e1){
-            System.out.println(e1);
-	}
-        
-        b1 = new JButton("Back");
-	b1.addActionListener(this);
-	b1.setBounds(150, 400, 150, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-        
         getContentPane().setBackground(Color.WHITE);
-        setSize(850, 650);
-        setLocation(300, 200);
+
+        // Title
+        JLabel titleLabel = new JLabel("ROOM INVENTORY DIRECTORY");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(24, 43, 73));
+        titleLabel.setBounds(30, 15, 350, 25);
+        add(titleLabel);
+
+        // Table in JScrollPane
+        table = new JTable();
+        table.setRowHeight(25);
+        table.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Tahoma", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(230, 235, 245));
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBounds(30, 55, 450, 400);
+        add(scrollPane);
+
+        // Side Image
+        Image sideImg = UIUtils.getScaledImage("icons/eight.jpg", 340, 400);
+        JLabel sideLabel = new JLabel(new ImageIcon(sideImg));
+        sideLabel.setBounds(500, 55, 340, 400);
+        add(sideLabel);
+
+        // Back Button
+        backButton = new JButton("Back to Reception");
+        backButton.setBounds(30, 470, 180, 35);
+        backButton.setBackground(new Color(24, 43, 73));
+        backButton.setForeground(Color.WHITE);
+        backButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(this);
+        add(backButton);
+
+        loadRooms();
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        setVisible(false);
-        new Reception();
+
+    private void loadRooms() {
+        String sql = "SELECT roomNo, available, status, price, type FROM room ORDER BY roomNo ASC";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+
+            table.setModel(DbUtils.resultSetToTableModel(rs));
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to load room inventory: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
     }
-    public static void main(String[] args){
-        new Room();
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        setVisible(false);
+        dispose();
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new Room());
     }
 }

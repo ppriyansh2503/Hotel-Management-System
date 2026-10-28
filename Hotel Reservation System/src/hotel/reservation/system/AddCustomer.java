@@ -1,188 +1,304 @@
 package hotel.reservation.system;
+
 import java.awt.*;
-import javax.swing.*;
+import java.awt.event.*;
 import java.sql.*;
+import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.awt.event.*; 
+import javax.swing.*;
 
-public class AddCustomer extends JFrame implements ActionListener{
-    JLabel l1, l2, l3, l4, l5, l6, l7, l8, l9, l10;
-    JTextField t1, t2, t3, t4;
-    JComboBox c1;
-    JButton b1, b2;
-    JRadioButton r1, r2;
-    ButtonGroup bg;
-    Choice ch1;
-    
-    AddCustomer(){
+/**
+ * New Customer Registration & Check-in Form.
+ * Validates inputs, handles room availability safely via transactions,
+ * and records check-in timestamp.
+ */
+public class AddCustomer extends JFrame implements ActionListener {
+    private JComboBox<String> idDocCombo;
+    private JTextField numberField, nameField, countryField, depositField;
+    private JRadioButton maleRadio, femaleRadio;
+    private ButtonGroup genderGroup;
+    private JComboBox<String> roomCombo;
+    private JLabel checkinTimeLabel;
+    private JButton submitButton, backButton;
+
+    public AddCustomer() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - New Customer Registration");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(850, 480);
+        setLocationRelativeTo(null);
         setLayout(null);
-        
-        ImageIcon i1  = new ImageIcon(ClassLoader.getSystemResource("icons/fifth.jpg"));
-        Image i3 = i1.getImage().getScaledInstance(350, 350,Image.SCALE_DEFAULT);
-        ImageIcon i2 = new ImageIcon(i3);
-        JLabel l15 = new JLabel(i2);
-        l15.setBounds(420,45,350,350);
-        add(l15);
-        
-        l1 = new JLabel("NEW CUSTOMER FORM");
-        l1.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l1.setBounds(150, 10, 300, 22);
-	add(l1);
-        
-        l2 = new JLabel("ID :");
-        l2.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l2.setBounds(50, 50, 200, 20);
-	add(l2);
-                
-        c1 = new JComboBox(new String[] {"Passport", "Aadhar Card", "Voter Id", "Driving license"});
-	c1.setBounds(240, 50, 150, 20);
-	add(c1);
-                
-        l3= new JLabel("Number :");
-        l3.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l3.setBounds(50, 90, 100, 20);
-	add(l3);
-                
-        t1 = new JTextField();
-	t1.setBounds(240, 90, 150, 20);
-	add(t1);
-		
-	l4= new JLabel("Name :");
-        l4.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l4.setBounds(50, 130, 100, 20);
-	add(l4);
-		
-	t2 = new JTextField();
-	t2.setBounds(240, 130, 150, 20);
-	add(t2);
-
-        l5= new JLabel("Gender :");
-        l5.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l5.setBounds(50, 170, 100, 20);
-	add(l5);
-                
-        r1 = new JRadioButton("Male");
-        r1.setFont(new Font("Raleway", Font.BOLD, 14));
-        r1.setBackground(Color.WHITE);
-        r1.setBounds(240, 170, 80, 20);
-        add(r1);
-                
-        r2 = new JRadioButton("Female");
-        r2.setFont(new Font("Raleway", Font.BOLD, 14));
-        r2.setBackground(Color.WHITE);
-        r2.setBounds(320, 170, 100, 20);
-	add(r2);
-        
-        bg = new ButtonGroup();
-        bg.add(r1);
-        bg.add(r2);
-                
-	l6 = new JLabel("Country :");
-        l6.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l6.setBounds(50, 210, 100, 20);
-	add(l6);
-        
-        t3 = new JTextField();
-	t3.setBounds(240, 210, 150, 20);
-	add(t3);
-		
-	l7= new JLabel("Allocated Room Number :");
-        l7.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l7.setBounds(50, 250, 190, 20);
-	add(l7);
-        
-        ch1 = new Choice();
-        try{
-            Conn c = new Conn();
-            ResultSet rs = c.s.executeQuery("select * from room where available = 'Available'");
-            while(rs.next()){
-                ch1.add(rs.getString("roomNo"));
-            }
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        ch1.setBounds(240, 250, 150, 20);
-        add(ch1);
-        
-        l8 = new JLabel("Checked-In :");
-        l8.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l8.setBounds(50, 290, 200, 15);
-	add(l8);
-        
-        Date date = new Date();
-        l9 = new JLabel("" + date);
-        l9.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l9.setBounds(190, 290, 250, 20);
-	add(l9);
-		
-	l10= new JLabel("Deposit :");
-        l10.setFont(new Font("Raleway", Font.PLAIN, 15));
-	l10.setBounds(50, 330, 200, 15);
-	add(l10);
-        
-	t4 = new JTextField();
-	t4.setBounds(240, 330, 150, 20);
-	add(t4);
-        
-        b1 = new JButton("Add Customer");
-	b1.addActionListener(this);
-	b1.setBounds(50, 365, 125, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-
-	b2 = new JButton("Back");
-	b2.addActionListener(this);
-	b2.setBounds(240, 365, 150, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-	add(b2);
-                
         getContentPane().setBackground(Color.WHITE);
-        setSize(850, 450);
-        setLocation(300, 200);
+
+        // Header Title
+        JLabel titleLabel = new JLabel("NEW GUEST CHECK-IN REGISTRATION");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(24, 43, 73));
+        titleLabel.setBounds(50, 15, 400, 25);
+        add(titleLabel);
+
+        // Form Fields
+        int labelX = 50;
+        int fieldX = 220;
+        int fieldWidth = 180;
+        int startY = 60;
+        int gap = 38;
+
+        // 1. ID Type
+        JLabel idLabel = new JLabel("ID Proof Type:");
+        idLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        idLabel.setBounds(labelX, startY, 150, 22);
+        add(idLabel);
+
+        idDocCombo = new JComboBox<>(new String[]{"Aadhar Card", "Passport", "Driving license", "Voter Id"});
+        idDocCombo.setBounds(fieldX, startY, fieldWidth, 24);
+        add(idDocCombo);
+
+        // 2. ID Number
+        JLabel numLabel = new JLabel("ID Document No:");
+        numLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        numLabel.setBounds(labelX, startY + gap, 150, 22);
+        add(numLabel);
+
+        numberField = new JTextField();
+        numberField.setBounds(fieldX, startY + gap, fieldWidth, 24);
+        add(numberField);
+
+        // 3. Guest Name
+        JLabel nameLabel = new JLabel("Guest Full Name:");
+        nameLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        nameLabel.setBounds(labelX, startY + gap * 2, 150, 22);
+        add(nameLabel);
+
+        nameField = new JTextField();
+        nameField.setBounds(fieldX, startY + gap * 2, fieldWidth, 24);
+        add(nameField);
+
+        // 4. Gender
+        JLabel genderLabel = new JLabel("Gender:");
+        genderLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        genderLabel.setBounds(labelX, startY + gap * 3, 150, 22);
+        add(genderLabel);
+
+        maleRadio = new JRadioButton("Male");
+        maleRadio.setBackground(Color.WHITE);
+        maleRadio.setSelected(true);
+        maleRadio.setBounds(fieldX, startY + gap * 3, 70, 22);
+        add(maleRadio);
+
+        femaleRadio = new JRadioButton("Female");
+        femaleRadio.setBackground(Color.WHITE);
+        femaleRadio.setBounds(fieldX + 80, startY + gap * 3, 90, 22);
+        add(femaleRadio);
+
+        genderGroup = new ButtonGroup();
+        genderGroup.add(maleRadio);
+        genderGroup.add(femaleRadio);
+
+        // 5. Country
+        JLabel countryLabel = new JLabel("Country / City:");
+        countryLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        countryLabel.setBounds(labelX, startY + gap * 4, 150, 22);
+        add(countryLabel);
+
+        countryField = new JTextField("India");
+        countryField.setBounds(fieldX, startY + gap * 4, fieldWidth, 24);
+        add(countryField);
+
+        // 6. Allocated Room
+        JLabel roomLabel = new JLabel("Allocated Room:");
+        roomLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        roomLabel.setBounds(labelX, startY + gap * 5, 150, 22);
+        add(roomLabel);
+
+        roomCombo = new JComboBox<>();
+        roomCombo.setBounds(fieldX, startY + gap * 5, fieldWidth, 24);
+        loadAvailableRooms();
+        add(roomCombo);
+
+        // 7. Check-in Timestamp (Fixed coordinate overlap)
+        JLabel timeLabel = new JLabel("Check-in Time:");
+        timeLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        timeLabel.setBounds(labelX, startY + gap * 6, 150, 22);
+        add(timeLabel);
+
+        String currentTimestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+        checkinTimeLabel = new JLabel(currentTimestamp);
+        checkinTimeLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+        checkinTimeLabel.setForeground(new Color(24, 43, 73));
+        checkinTimeLabel.setBounds(fieldX, startY + gap * 6, 200, 22);
+        add(checkinTimeLabel);
+
+        // 8. Advance Deposit
+        JLabel depositLabel = new JLabel("Advance Deposit (₹):");
+        depositLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        depositLabel.setBounds(labelX, startY + gap * 7, 150, 22);
+        add(depositLabel);
+
+        depositField = new JTextField("2000");
+        depositField.setBounds(fieldX, startY + gap * 7, fieldWidth, 24);
+        add(depositField);
+
+        // Buttons
+        submitButton = new JButton("Register & Check-in");
+        submitButton.setBounds(labelX, startY + gap * 8 + 10, 170, 35);
+        submitButton.setBackground(new Color(24, 43, 73));
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        submitButton.addActionListener(this);
+        add(submitButton);
+
+        backButton = new JButton("Cancel");
+        backButton.setBounds(labelX + 190, startY + gap * 8 + 10, 130, 35);
+        backButton.setBackground(new Color(108, 117, 125));
+        backButton.setForeground(Color.WHITE);
+        backButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(this);
+        add(backButton);
+
+        // Graphic Illustration
+        Image sideImg = UIUtils.getScaledImage("icons/fifth.jpg", 370, 360);
+        JLabel imgLabel = new JLabel(new ImageIcon(sideImg));
+        imgLabel.setBounds(440, 45, 370, 360);
+        add(imgLabel);
+
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        if(ae.getSource() == b1){
-            String id = (String) c1.getSelectedItem();
-            String number =  t1.getText();
-            String name =  t2.getText();
-            
-            String gender =  null;
-            if(r1.isSelected()){
-                gender = "Male";
-            }else if(r2.isSelected()){
-                gender = "Female";
+
+    private void loadAvailableRooms() {
+        roomCombo.removeAllItems();
+        String query = "SELECT roomNo, type, price FROM room WHERE available = 'Available' ORDER BY roomNo ASC";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                String roomNo = rs.getString("roomNo");
+                String type = rs.getString("type");
+                String price = rs.getString("price");
+                roomCombo.addItem(roomNo + " (" + type + " - ₹" + price + ")");
             }
-            
-            String country =  t3.getText();
-            String room =  ch1.getSelectedItem();
-            String time =  l9.getText();
-            String deposit =  t4.getText();
-            
-            try{
-                Conn c = new Conn();
-                String q1 = "insert into customer values('"+id+"','"+number+"','"+name+"','"+gender+"','"+country+"','"+room+"','"+time+"','"+deposit+"')";
-                String q2 = "update room set available = 'Occupied' where roomNo = '"+room+"'";
-                c.s.executeUpdate(q1);
-                c.s.executeUpdate(q2);
-	    			
-	    	JOptionPane.showMessageDialog(null, "New Customer Added Successfully");
-                new Reception().setVisible(true);
-                setVisible(false);
-            }catch (Exception e){
-                System.out.println(e);
-            }
-            
-        }else if(ae.getSource() == b2){
-            new Reception().setVisible(true);
-            setVisible(false);
+        } catch (Exception e) {
+            System.err.println("Error loading rooms: " + e.getMessage());
+        }
+
+        if (roomCombo.getItemCount() == 0) {
+            roomCombo.addItem("No Rooms Available");
+            if (submitButton != null) submitButton.setEnabled(false);
+        } else {
+            if (submitButton != null) submitButton.setEnabled(true);
         }
     }
-    
-    public static void main(String[] args){
-        new AddCustomer();
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == submitButton) {
+            handleCheckin();
+        } else if (ae.getSource() == backButton) {
+            setVisible(false);
+            dispose();
+        }
+    }
+
+    private void handleCheckin() {
+        String idDoc = (String) idDocCombo.getSelectedItem();
+        String idNumber = numberField.getText().trim();
+        String guestName = nameField.getText().trim();
+        String gender = maleRadio.isSelected() ? "Male" : "Female";
+        String country = countryField.getText().trim();
+        String selectedRoomRaw = (String) roomCombo.getSelectedItem();
+        String checkinTime = checkinTimeLabel.getText();
+        String deposit = depositField.getText().trim();
+
+        // Validation
+        if (!ValidationUtils.isNotEmpty(idNumber)) {
+            JOptionPane.showMessageDialog(this, "Please provide an ID Document Number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            numberField.requestFocusInWindow();
+            return;
+        }
+
+        if ("Aadhar Card".equalsIgnoreCase(idDoc) && !ValidationUtils.isValidAadhar(idNumber)) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid 12-digit Aadhar Number.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            numberField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isNotEmpty(guestName)) {
+            JOptionPane.showMessageDialog(this, "Please provide the Guest's Full Name.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            nameField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isNotEmpty(country)) {
+            JOptionPane.showMessageDialog(this, "Please enter Country/City.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            countryField.requestFocusInWindow();
+            return;
+        }
+
+        if (selectedRoomRaw == null || selectedRoomRaw.startsWith("No Rooms")) {
+            JOptionPane.showMessageDialog(this, "No rooms are currently available for allocation.", "Room Unavailable", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+
+        if (!ValidationUtils.isNonNegativeDouble(deposit)) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid numeric deposit amount (0 or positive).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            depositField.requestFocusInWindow();
+            return;
+        }
+
+        // Extract Room Number
+        String roomNo = selectedRoomRaw.split(" ")[0].trim();
+
+        // Database Transaction for Atomic Insert & Room Occupancy Update
+        try (Conn conn = new Conn()) {
+            conn.c.setAutoCommit(false);
+            try {
+                // 1. Insert customer record
+                String insertSql = "INSERT INTO customer (document, number, name, gender, country, room, checkintime, deposit, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Checked-In')";
+                try (PreparedStatement psCust = conn.prepareStatement(insertSql)) {
+                    psCust.setString(1, idDoc);
+                    psCust.setString(2, idNumber);
+                    psCust.setString(3, guestName);
+                    psCust.setString(4, gender);
+                    psCust.setString(5, country);
+                    psCust.setString(6, roomNo);
+                    psCust.setString(7, checkinTime);
+                    psCust.setString(8, deposit);
+                    psCust.executeUpdate();
+                }
+
+                // 2. Mark Room as Occupied
+                String updateRoomSql = "UPDATE room SET available = 'Occupied' WHERE roomNo = ?";
+                try (PreparedStatement psRoom = conn.prepareStatement(updateRoomSql)) {
+                    psRoom.setString(1, roomNo);
+                    psRoom.executeUpdate();
+                }
+
+                conn.c.commit();
+
+                JOptionPane.showMessageDialog(this,
+                    "Guest " + guestName + " successfully registered and checked into Room " + roomNo + "!",
+                    "Check-in Successful", JOptionPane.INFORMATION_MESSAGE);
+
+                setVisible(false);
+                dispose();
+
+            } catch (Exception ex) {
+                conn.c.rollback();
+                throw ex;
+            } finally {
+                conn.c.setAutoCommit(true);
+            }
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to register customer: " + e.getMessage(), "Database Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new AddCustomer());
     }
 }

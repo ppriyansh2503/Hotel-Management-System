@@ -1,143 +1,212 @@
 package hotel.reservation.system;
+
 import java.awt.*;
-import javax.swing.*;
 import java.awt.event.*;
+import java.sql.*;
+import javax.swing.*;
 
-public class AddDriver extends JFrame implements ActionListener{
-    JLabel l1, l2, l3, l4, l5, l6, l7;
-    JTextField t1, t2, t3, t4, t5;
-    JComboBox c1, c2;
-    JButton b1, b2;
-    
-    AddDriver(){
+/**
+ * Add Chauffeur / Driver Form.
+ * Validates driver and vehicle data, inserting records via parameterized queries.
+ */
+public class AddDriver extends JFrame implements ActionListener {
+    private JTextField nameField, ageField, companyField, brandField, locationField;
+    private JComboBox<String> genderCombo, availableCombo;
+    private JButton submitButton, cancelButton;
+
+    public AddDriver() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - Add Driver / Chauffeur");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(850, 480);
+        setLocationRelativeTo(null);
         setLayout(null);
-        
-        ImageIcon i1  = new ImageIcon(ClassLoader.getSystemResource("icons/eleven.jpg"));
-        Image i3 = i1.getImage().getScaledInstance(400, 300,Image.SCALE_DEFAULT);
-        ImageIcon i2 = new ImageIcon(i3);
-        JLabel l15 = new JLabel(i2);
-        l15.setBounds(400,30,400,300);
-        add(l15);
-        
-        JLabel l10 = new JLabel("ADD DRIVERS");
-        l10.setFont(new Font("Tahoma", Font.BOLD, 18));
-	l10.setBounds(150, 20, 120, 22);
-	add(l10);
-        
-	l1 = new JLabel("Name:");
-	l1.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l1.setBounds(60, 70, 150, 22);
-	add(l1);
-        
-        t1 = new JTextField();
-	t1.setBounds(200, 70, 156, 20);
-	add(t1);
-        
-	l2 = new JLabel("Age:");
-	l2.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l2.setBounds(60, 110, 102, 22);
-	add(l2);
-        
-        t2 = new JTextField();
-	t2.setBounds(200, 110, 156, 20);
-	add(t2);
-        
-	l3 = new JLabel("Gender:");
-	l3.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l3.setBounds(60, 150, 130, 22);
-	add(l3);
-        
-        c1 = new JComboBox<>(new String[] { "Male", "Female" });
-	c1.setBounds(200, 150, 154, 20);
-	add(c1);
-
-	l4 = new JLabel("Car Company:");
-	l4.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l4.setBounds(60, 190, 102, 22);
-	add(l4);
-        
-        t3 = new JTextField();
-	t3.setBounds(200, 190, 156, 20);
-	add(t3);
-
-        l5 = new JLabel("Car Model:");
-	l5.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l5.setBounds(60, 230, 102, 22);
-	add(l5);
-        
-        t4 = new JTextField();
-	t4.setBounds(200, 230, 156, 20);
-	add(t4);
-        
-        l6 = new JLabel("Available:");
-	l6.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l6.setBounds(60, 270, 102, 22);
-	add(l6);
-        
-        c2 = new JComboBox<>(new String[] { "Available", "Busy" });
-	c2.setBounds(200, 270, 154, 20);
-	add(c2);
-        
-        l7 = new JLabel("Location:");
-	l7.setFont(new Font("Tahoma", Font.PLAIN, 14));
-	l7.setBounds(60, 310, 102, 22);
-	add(l7);
-        
-        t5 = new JTextField();
-	t5.setBounds(200, 310, 156, 20);
-	add(t5);
-
-	b1 = new JButton("Add Driver");
-	b1.addActionListener(this);
-	b1.setBounds(60, 350, 125, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-
-	b2 = new JButton("Cancle");
-	b2.addActionListener(this);
-	b2.setBounds(200, 350, 150, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-	add(b2);
-
         getContentPane().setBackground(Color.WHITE);
-        setSize(850, 450);
-        setLocation(300, 200);
+
+        // Header
+        JLabel titleLabel = new JLabel("ADD CHAUFFEUR & VEHICLE DETAILS");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(24, 43, 73));
+        titleLabel.setBounds(60, 15, 400, 25);
+        add(titleLabel);
+
+        int labelX = 60;
+        int fieldX = 200;
+        int fieldWidth = 160;
+        int startY = 60;
+        int gap = 38;
+
+        // 1. Name
+        JLabel l1 = new JLabel("Driver Name:");
+        l1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l1.setBounds(labelX, startY, 130, 22);
+        add(l1);
+
+        nameField = new JTextField();
+        nameField.setBounds(fieldX, startY, fieldWidth, 24);
+        add(nameField);
+
+        // 2. Age
+        JLabel l2 = new JLabel("Age:");
+        l2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l2.setBounds(labelX, startY + gap, 130, 22);
+        add(l2);
+
+        ageField = new JTextField();
+        ageField.setBounds(fieldX, startY + gap, fieldWidth, 24);
+        add(ageField);
+
+        // 3. Gender
+        JLabel l3 = new JLabel("Gender:");
+        l3.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l3.setBounds(labelX, startY + gap * 2, 130, 22);
+        add(l3);
+
+        genderCombo = new JComboBox<>(new String[]{"Male", "Female"});
+        genderCombo.setBounds(fieldX, startY + gap * 2, fieldWidth, 24);
+        add(genderCombo);
+
+        // 4. Car Company / Make
+        JLabel l4 = new JLabel("Vehicle Make:");
+        l4.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l4.setBounds(labelX, startY + gap * 3, 130, 22);
+        add(l4);
+
+        companyField = new JTextField();
+        companyField.setBounds(fieldX, startY + gap * 3, fieldWidth, 24);
+        add(companyField);
+
+        // 5. Car Model / Brand
+        JLabel l5 = new JLabel("Vehicle Model:");
+        l5.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l5.setBounds(labelX, startY + gap * 4, 130, 22);
+        add(l5);
+
+        brandField = new JTextField();
+        brandField.setBounds(fieldX, startY + gap * 4, fieldWidth, 24);
+        add(brandField);
+
+        // 6. Availability
+        JLabel l6 = new JLabel("Availability:");
+        l6.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l6.setBounds(labelX, startY + gap * 5, 130, 22);
+        add(l6);
+
+        availableCombo = new JComboBox<>(new String[]{"Available", "Busy"});
+        availableCombo.setBounds(fieldX, startY + gap * 5, fieldWidth, 24);
+        add(availableCombo);
+
+        // 7. Base Location
+        JLabel l7 = new JLabel("Station / Base:");
+        l7.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        l7.setBounds(labelX, startY + gap * 6, 130, 22);
+        add(l7);
+
+        locationField = new JTextField();
+        locationField.setBounds(fieldX, startY + gap * 6, fieldWidth, 24);
+        add(locationField);
+
+        // Buttons
+        submitButton = new JButton("Add Driver");
+        submitButton.setBounds(labelX, startY + gap * 7 + 10, 130, 35);
+        submitButton.setBackground(new Color(24, 43, 73));
+        submitButton.setForeground(Color.WHITE);
+        submitButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        submitButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        submitButton.addActionListener(this);
+        add(submitButton);
+
+        cancelButton = new JButton("Cancel");
+        cancelButton.setBounds(labelX + 150, startY + gap * 7 + 10, 110, 35);
+        cancelButton.setBackground(new Color(108, 117, 125));
+        cancelButton.setForeground(Color.WHITE);
+        cancelButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        cancelButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        cancelButton.addActionListener(this);
+        add(cancelButton);
+
+        // Side Image
+        Image sideImg = UIUtils.getScaledImage("icons/eleven.jpg", 380, 280);
+        JLabel imgLabel = new JLabel(new ImageIcon(sideImg));
+        imgLabel.setBounds(400, 50, 380, 280);
+        add(imgLabel);
+
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        try{
-            if(ae.getSource() == b1){
-                try{
-                Conn c = new Conn();
-                String name = t1.getText();
-                String age = t2.getText();
-                String gender = (String)c1.getSelectedItem();
-                String company  = t3.getText();
-                String brand = t4.getText();
-                String available = (String)c2.getSelectedItem();
-                String location = t5.getText();
-                
-                String str = "INSERT INTO driver values( '"+name+"', '"+age+"', '"+gender+"','"+company+"', '"+brand+"', '"+available+"','"+location+"')";
-                c.s.executeUpdate(str);
-		JOptionPane.showMessageDialog(null, "Driver Successfully Added");
-                this.setVisible(false);
-               
-                }catch(Exception ee){
-                    System.out.println(ee);
-                }
-            }
-            else if(ae.getSource() == b2){
-                this.setVisible(false);
-            }
-        }catch(Exception eee){
-            System.out.println(eee);
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == submitButton) {
+            handleAddDriver();
+        } else if (ae.getSource() == cancelButton) {
+            setVisible(false);
+            dispose();
         }
     }
-    
-    public static void main(String[] args){
-        new AddDriver();
+
+    private void handleAddDriver() {
+        String name = nameField.getText().trim();
+        String age = ageField.getText().trim();
+        String gender = (String) genderCombo.getSelectedItem();
+        String company = companyField.getText().trim();
+        String brand = brandField.getText().trim();
+        String available = (String) availableCombo.getSelectedItem();
+        String location = locationField.getText().trim();
+
+        if (!ValidationUtils.isNotEmpty(name)) {
+            JOptionPane.showMessageDialog(this, "Please enter Driver Name.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            nameField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isPositiveInteger(age) || Integer.parseInt(age) < 18 || Integer.parseInt(age) > 75) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid age (18 - 75).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            ageField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isNotEmpty(company)) {
+            JOptionPane.showMessageDialog(this, "Please enter Vehicle Make/Company (e.g. Toyota, Maruti).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            companyField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isNotEmpty(brand)) {
+            JOptionPane.showMessageDialog(this, "Please enter Vehicle Model (e.g. Innova Crysta, Ertiga).", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            brandField.requestFocusInWindow();
+            return;
+        }
+
+        if (!ValidationUtils.isNotEmpty(location)) {
+            JOptionPane.showMessageDialog(this, "Please enter Station/Base location.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+            locationField.requestFocusInWindow();
+            return;
+        }
+
+        String sql = "INSERT INTO driver (name, age, gender, company, brand, available, location) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+
+            ps.setString(1, name);
+            ps.setString(2, age);
+            ps.setString(3, gender);
+            ps.setString(4, company);
+            ps.setString(5, brand);
+            ps.setString(6, available);
+            ps.setString(7, location);
+            ps.executeUpdate();
+
+            JOptionPane.showMessageDialog(this, "Driver " + name + " added successfully!", "Driver Registered", JOptionPane.INFORMATION_MESSAGE);
+            setVisible(false);
+            dispose();
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to register driver: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new AddDriver());
     }
 }

@@ -1,118 +1,138 @@
 package hotel.reservation.system;
-import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import net.proteanit.sql.*;
+import javax.swing.*;
+import net.proteanit.sql.DbUtils;
 
-public class SearchRoom extends JFrame implements ActionListener{
-    JTable t1;
-    JLabel l1, l2, l3, l4, l5, l6, l7;
-    JButton b1, b2;
-    JComboBox c1;
-    JCheckBox ch1;
-    
-    SearchRoom(){
-        setLayout(null);
-        
-        l1 = new JLabel("Search For Room");
-        l1.setFont(new Font("Tahoma", Font.PLAIN, 20));
-        l1.setBounds(150, 20, 200, 20);
-        add(l1);
-        
-        l2 = new JLabel("Bed Type: ");
-        l2.setBounds(50, 60, 80, 20);
-        add(l2);
-        
-        c1 = new JComboBox(new String[] {"Single Bed", "Double Bed"});
-	c1.setBounds(120, 60, 150, 20);
-        c1.setBackground(Color.WHITE);
-	add(c1);
-        
-        ch1 = new JCheckBox("Only Display Available");
-        ch1.setBounds(500, 60, 200, 20);
-        ch1.setBackground(Color.WHITE);
-	add(ch1);
-        
-        l3 = new JLabel("Room No");
-        l3.setBounds(0, 90, 60, 20);
-        add(l3);
-        
-        l4 = new JLabel("Availability");
-        l4.setBounds(90, 90, 80, 20);
-        add(l4);
+/**
+ * Room Search and Availability Filter Screen.
+ * Allows filtering by Bed Type and instantly checking available inventory.
+ */
+public class SearchRoom extends JFrame implements ActionListener {
+    private JTable table;
+    private JComboBox<String> bedTypeCombo;
+    private JCheckBox availableOnlyCheck;
+    private JButton searchButton, showAllButton, backButton;
 
-        l5 = new JLabel("Status");
-        l5.setBounds(180, 90, 60, 20);
-        add(l5);
-        
-        l6 = new JLabel("Price");
-        l6.setBounds(270, 90, 60, 20);
-        add(l6);
-        
-        l7 = new JLabel("Bed Type");
-        l7.setBounds(360, 90, 60, 20);
-        add(l7);
-        
-        t1 = new JTable();
-        t1.setBounds(0, 110, 450, 250);
-        add(t1);
-        
-        try{
-            Conn c = new Conn();
-            String str = "select * from room";
-            ResultSet rs = c.s.executeQuery(str);
-            t1.setModel(DbUtils.resultSetToTableModel(rs));
-        }catch(Exception e1){
-            System.out.println(e1);
-	}
-        
-        b1 = new JButton("SUBMIT");
-	b1.addActionListener(this);
-	b1.setBounds(50, 400, 150, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-        
-        b2 = new JButton("Back");
-	b2.addActionListener(this);
-	b2.setBounds(250, 400, 150, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-	add(b2);
-        
+    public SearchRoom() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - Room Search & Filter");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(850, 560);
+        setLocationRelativeTo(null);
+        setLayout(new BorderLayout(10, 10));
         getContentPane().setBackground(Color.WHITE);
-        setSize(850, 650);
-        setLocation(300, 200);
+
+        // Filter Bar (Top)
+        JPanel filterPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 20, 12));
+        filterPanel.setBackground(new Color(24, 43, 73));
+
+        JLabel titleLabel = new JLabel("SEARCH ROOMS");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(Color.WHITE);
+        filterPanel.add(titleLabel);
+
+        JLabel typeLabel = new JLabel("Bed Type:");
+        typeLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        typeLabel.setForeground(Color.WHITE);
+        filterPanel.add(typeLabel);
+
+        bedTypeCombo = new JComboBox<>(new String[]{"All Types", "Single Bed", "Double Bed"});
+        bedTypeCombo.setPreferredSize(new Dimension(140, 26));
+        filterPanel.add(bedTypeCombo);
+
+        availableOnlyCheck = new JCheckBox("Available Only");
+        availableOnlyCheck.setForeground(Color.WHITE);
+        availableOnlyCheck.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        availableOnlyCheck.setOpaque(false);
+        filterPanel.add(availableOnlyCheck);
+
+        searchButton = new JButton("Search");
+        searchButton.setFont(new Font("Tahoma", Font.BOLD, 12));
+        searchButton.addActionListener(this);
+        filterPanel.add(searchButton);
+
+        showAllButton = new JButton("Reset");
+        showAllButton.setFont(new Font("Tahoma", Font.PLAIN, 12));
+        showAllButton.addActionListener(this);
+        filterPanel.add(showAllButton);
+
+        add(filterPanel, BorderLayout.NORTH);
+
+        // Table in JScrollPane (Center)
+        table = new JTable();
+        table.setRowHeight(25);
+        table.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Tahoma", Font.BOLD, 13));
+        table.getTableHeader().setBackground(new Color(230, 235, 245));
+
+        JScrollPane scrollPane = new JScrollPane(table);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        add(scrollPane, BorderLayout.CENTER);
+
+        // Footer Actions (Bottom)
+        JPanel footerPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 15, 12));
+        footerPanel.setBackground(Color.WHITE);
+
+        backButton = new JButton("Back to Reception");
+        backButton.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        backButton.setBackground(new Color(108, 117, 125));
+        backButton.setForeground(Color.WHITE);
+        backButton.addActionListener(this);
+        footerPanel.add(backButton);
+
+        add(footerPanel, BorderLayout.SOUTH);
+
+        loadRooms(null, false);
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        if(ae.getSource() == b1){
-            try{
-                String q1 = "select * from Room where type = '"+c1.getSelectedItem()+"'";
-		String q2 = "select * from Room where available = 'Available' AND type = '"+c1.getSelectedItem()+"'";
-			
-                Conn c = new Conn();
-		ResultSet rs;
-                
-		if(ch1.isSelected()){
-                    rs = c.s.executeQuery(q2);
-		}else{
-                    rs = c.s.executeQuery(q1);
-                }
-                
-                t1.setModel(DbUtils.resultSetToTableModel(rs));
-            }catch (SQLException ss){
-                System.out.println(ss);
+
+    private void loadRooms(String type, boolean availableOnly) {
+        StringBuilder sql = new StringBuilder("SELECT roomNo, available, status, price, type FROM room WHERE 1=1");
+
+        if (type != null && !type.equals("All Types")) {
+            sql.append(" AND type = ?");
+        }
+        if (availableOnly) {
+            sql.append(" AND available = 'Available'");
+        }
+        sql.append(" ORDER BY roomNo ASC");
+
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(sql.toString())) {
+
+            if (type != null && !type.equals("All Types")) {
+                ps.setString(1, type);
             }
-			
-        }else{
-            setVisible(false);
-            new Reception();
+
+            try (ResultSet rs = ps.executeQuery()) {
+                table.setModel(DbUtils.resultSetToTableModel(rs));
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to search rooms: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
     }
-    public static void main(String[] args){
-        new SearchRoom();
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == searchButton) {
+            String selectedType = (String) bedTypeCombo.getSelectedItem();
+            boolean availOnly = availableOnlyCheck.isSelected();
+            loadRooms(selectedType, availOnly);
+        } else if (ae.getSource() == showAllButton) {
+            bedTypeCombo.setSelectedIndex(0);
+            availableOnlyCheck.setSelected(false);
+            loadRooms(null, false);
+        } else if (ae.getSource() == backButton) {
+            setVisible(false);
+            dispose();
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new SearchRoom());
     }
 }

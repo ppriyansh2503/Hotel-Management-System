@@ -1,141 +1,201 @@
 package hotel.reservation.system;
+
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import javax.swing.*;
 
-public class UpdateRoom extends JFrame implements ActionListener{
-    JLabel l1, l2, l3, l4, l5;
-    Choice ch1;
-    JTextField t1, t2, t3;
-    JButton b1, b2, b3;
-    
-    UpdateRoom(){
+/**
+ * Room Status & Maintenance Management.
+ * Allows updating availability (Available, Occupied, Under Maintenance)
+ * and housekeeping cleaning status (Cleaned, Dirty, In Progress) for any room.
+ */
+public class UpdateRoom extends JFrame implements ActionListener {
+    private JComboBox<String> roomCombo;
+    private JComboBox<String> availabilityCombo;
+    private JComboBox<String> statusCombo;
+    private JLabel roomTypeLabel, roomPriceLabel;
+    private JButton checkButton, updateButton, backButton;
+
+    public UpdateRoom() {
+        UIUtils.applyModernTheme();
+
+        setTitle("The Grand Hotel - Update Room Status");
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        setSize(750, 420);
+        setLocationRelativeTo(null);
         setLayout(null);
-        
-        ImageIcon i1  = new ImageIcon(ClassLoader.getSystemResource("icons/seventh.jpg"));
-        Image i3 = i1.getImage().getScaledInstance(350, 250,Image.SCALE_DEFAULT);
-        ImageIcon i2 = new ImageIcon(i3);
-        JLabel l15 = new JLabel(i2);
-        l15.setBounds(320,30,350,250);
-        add(l15);
-        
-        l1 = new JLabel("Update Room Status");
-        l1.setFont(new Font("Tahoma", Font.PLAIN, 25));
-        l1.setBounds(30, 5, 250, 25);
-        l1.setForeground(Color.BLUE);
-        add(l1);
-        
-        l2 = new JLabel("Customer Id: ");
-        l2.setBounds(10, 45, 100, 20);
-        add(l2);
-        
-        ch1 = new Choice();
-        try{
-            Conn c = new Conn();
-            ResultSet rs = c.s.executeQuery("select * from customer");
-            while(rs.next()){
-                ch1.add(rs.getString("number"));
-            }
-        }catch(Exception e){
-            System.out.println(e);
-        }
-        ch1.setBounds(150 , 45, 150, 20);
-        add(ch1);
-        
-        l3 = new JLabel("Room No: ");
-        l3.setBounds(10, 75, 100, 20);
-        add(l3);
-        
-        t1 = new JTextField();
-	t1.setBounds(150, 75, 150, 20);
-	add(t1);
-        
-        l4 = new JLabel("Availability: ");
-        l4.setBounds(10, 105, 100, 20);
-        add(l4);
-        
-        t2 = new JTextField();
-	t2.setBounds(150, 105, 150, 20);
-	add(t2);
-        
-        l5 = new JLabel("Cleaning Status: ");
-        l5.setBounds(10, 135, 100, 20);
-        add(l5);
-        
-        t3 = new JTextField();
-	t3.setBounds(150, 135, 150, 20);
-	add(t3);
-        
-        b1 = new JButton("CHECK");
-	b1.addActionListener(this);
-	b1.setBounds(20, 190, 100, 33);
-        b1.setBackground(Color.BLACK);
-        b1.setForeground(Color.WHITE);
-	add(b1);
-        
-        b2 = new JButton("UPDATE");
-	b2.addActionListener(this);
-	b2.setBounds(150, 190, 100, 33);
-        b2.setBackground(Color.BLACK);
-        b2.setForeground(Color.WHITE);
-	add(b2);
-        
-        b3 = new JButton("Back");
-	b3.addActionListener(this);
-	b3.setBounds(90, 230, 100, 33);
-        b3.setBackground(Color.BLACK);
-        b3.setForeground(Color.WHITE);
-	add(b3);
-        
         getContentPane().setBackground(Color.WHITE);
-        setSize(700, 400);
-        setLocation(300, 200);
+
+        // Header
+        JLabel titleLabel = new JLabel("UPDATE ROOM & HOUSEKEEPING STATUS");
+        titleLabel.setFont(new Font("Tahoma", Font.BOLD, 18));
+        titleLabel.setForeground(new Color(24, 43, 73));
+        titleLabel.setBounds(40, 15, 450, 25);
+        add(titleLabel);
+
+        // Form Coordinates
+        int labelX = 40;
+        int fieldX = 180;
+        int fieldWidth = 180;
+        int startY = 65;
+        int gap = 38;
+
+        // 1. Select Room Number
+        JLabel roomLabel = new JLabel("Select Room No:");
+        roomLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        roomLabel.setBounds(labelX, startY, 130, 22);
+        add(roomLabel);
+
+        roomCombo = new JComboBox<>();
+        roomCombo.setBounds(fieldX, startY, fieldWidth, 26);
+        roomCombo.addActionListener(e -> loadRoomDetails());
+        add(roomCombo);
+
+        // 2. Room Type & Price Display
+        JLabel typeTitle = new JLabel("Room Details:");
+        typeTitle.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        typeTitle.setBounds(labelX, startY + gap, 130, 22);
+        add(typeTitle);
+
+        roomTypeLabel = new JLabel("Type: -");
+        roomTypeLabel.setFont(new Font("Tahoma", Font.BOLD, 13));
+        roomTypeLabel.setBounds(fieldX, startY + gap, 180, 22);
+        add(roomTypeLabel);
+
+        // 3. Availability Dropdown
+        JLabel availLabel = new JLabel("Availability:");
+        availLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        availLabel.setBounds(labelX, startY + gap * 2, 130, 22);
+        add(availLabel);
+
+        availabilityCombo = new JComboBox<>(new String[]{"Available", "Occupied", "Under Maintenance"});
+        availabilityCombo.setBounds(fieldX, startY + gap * 2, fieldWidth, 26);
+        add(availabilityCombo);
+
+        // 4. Cleaning Status Dropdown
+        JLabel statusLabel = new JLabel("Cleaning Status:");
+        statusLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        statusLabel.setBounds(labelX, startY + gap * 3, 130, 22);
+        add(statusLabel);
+
+        statusCombo = new JComboBox<>(new String[]{"Cleaned", "Dirty", "Cleaning In Progress"});
+        statusCombo.setBounds(fieldX, startY + gap * 3, fieldWidth, 26);
+        add(statusCombo);
+
+        // Action Buttons
+        updateButton = new JButton("Save Status");
+        updateButton.setBounds(labelX, startY + gap * 4 + 10, 140, 35);
+        updateButton.setBackground(new Color(24, 43, 73));
+        updateButton.setForeground(Color.WHITE);
+        updateButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        updateButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        updateButton.addActionListener(this);
+        add(updateButton);
+
+        backButton = new JButton("Cancel");
+        backButton.setBounds(labelX + 160, startY + gap * 4 + 10, 110, 35);
+        backButton.setBackground(new Color(108, 117, 125));
+        backButton.setForeground(Color.WHITE);
+        backButton.setFont(new Font("Tahoma", Font.BOLD, 13));
+        backButton.setCursor(new Cursor(Cursor.HAND_CURSOR));
+        backButton.addActionListener(this);
+        add(backButton);
+
+        // Side Graphic
+        Image sideImg = UIUtils.getScaledImage("icons/seventh.jpg", 320, 250);
+        JLabel imgLabel = new JLabel(new ImageIcon(sideImg));
+        imgLabel.setBounds(390, 50, 320, 250);
+        add(imgLabel);
+
+        loadAllRooms();
         setVisible(true);
     }
-    
-    public void actionPerformed(ActionEvent ae){
-        if(ae.getSource() == b1){
-            String document = ch1.getSelectedItem();
-            String q1 = "select * from customer where number = '"+document+"'";
-            try{
-                Conn c = new Conn();
-                ResultSet rs = c.s.executeQuery(q1);
-                while(rs.next()){
-                    t1.setText(rs.getString("room"));
-                }
-                
-                ResultSet rs2 = c.s.executeQuery("select * from room where roomNo = '"+t1.getText()+"'");
-                while(rs2.next()){
-                    t2.setText(rs2.getString("available"));  
-                    t3.setText(rs2.getString("status"));
-                }
-            }catch(Exception e){
-                System.out.println(e);
+
+    private void loadAllRooms() {
+        roomCombo.removeAllItems();
+        String query = "SELECT roomNo FROM room ORDER BY roomNo ASC";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(query);
+             ResultSet rs = ps.executeQuery()) {
+
+            while (rs.next()) {
+                roomCombo.addItem(rs.getString("roomNo"));
             }
-				
-        }else if(ae.getSource() == b2){
-            String roomNo = t1.getText(); 
-            String available = t2.getText();
-            String status = t3.getText(); 
-            try{
-                Conn c = new Conn();
-                c.s.executeUpdate("update room set available = '"+available+"', status = '"+status+"' where roomNo = '"+roomNo+"'");
-                JOptionPane.showMessageDialog(null, "Data Updated Successfully");
-                
-                setVisible(false);
-                new Reception();
-                
-            }catch(Exception ee){
-                System.out.println(ee);
-            }
-        }else if(ae.getSource() == b3){
-            setVisible(false);
-            new Reception();
+        } catch (Exception e) {
+            System.err.println("Error loading rooms: " + e.getMessage());
+        }
+
+        if (roomCombo.getItemCount() > 0) {
+            loadRoomDetails();
         }
     }
-    
-    public static void main(String[] args){
-        new UpdateRoom();
+
+    private void loadRoomDetails() {
+        String selectedRoom = (String) roomCombo.getSelectedItem();
+        if (selectedRoom == null) return;
+
+        String query = "SELECT available, status, type, price FROM room WHERE roomNo = ?";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(query)) {
+
+            ps.setString(1, selectedRoom);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    String avail = rs.getString("available");
+                    String status = rs.getString("status");
+                    String type = rs.getString("type");
+                    String price = rs.getString("price");
+
+                    roomTypeLabel.setText(type + " (₹" + price + ")");
+                    availabilityCombo.setSelectedItem(avail);
+                    statusCombo.setSelectedItem(status);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading room details: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent ae) {
+        if (ae.getSource() == updateButton) {
+            handleUpdate();
+        } else if (ae.getSource() == backButton) {
+            setVisible(false);
+            dispose();
+        }
+    }
+
+    private void handleUpdate() {
+        String selectedRoom = (String) roomCombo.getSelectedItem();
+        String newAvail = (String) availabilityCombo.getSelectedItem();
+        String newStatus = (String) statusCombo.getSelectedItem();
+
+        if (selectedRoom == null) return;
+
+        String updateSql = "UPDATE room SET available = ?, status = ? WHERE roomNo = ?";
+        try (Conn conn = new Conn();
+             PreparedStatement ps = conn.prepareStatement(updateSql)) {
+
+            ps.setString(1, newAvail);
+            ps.setString(2, newStatus);
+            ps.setString(3, selectedRoom);
+            int rows = ps.executeUpdate();
+
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(this,
+                    "Room " + selectedRoom + " updated successfully to: " + newAvail + " (" + newStatus + ")",
+                    "Update Successful", JOptionPane.INFORMATION_MESSAGE);
+                setVisible(false);
+                dispose();
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(this, "Failed to update room: " + e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(() -> new UpdateRoom());
     }
 }
